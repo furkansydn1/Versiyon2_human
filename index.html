@@ -971,7 +971,9 @@ function wire(){
   $('dClose').addEventListener('click',()=>$('veil').classList.remove('on'));
   $('veil').addEventListener('click',e=>{ if(e.target===$('veil')) $('veil').classList.remove('on'); });
 
-  $('wIn').addEventListener('input',e=>{
+  $('wIn').addEventListener('keydown',e=>{
+    if(e.key!=='Enter') return;
+    e.preventDefault();
     const k=today(), x=ent(k,true);
     x.s=e.target.value;
     const ok=x.s.trim().length>=10, had=x.d.includes('c_kelime');
@@ -980,8 +982,14 @@ function wire(){
     restat(k); save(); hint('wHint');
     if(ok!==had) drawToday();
   });
-  $('mIn').addEventListener('input',e=>{ ent(today(),true).m=e.target.value; save(); hint('mHint'); });
-  $('eIn').addEventListener('input',e=>{ ent(today(),true).e=e.target.value; save(); hint('eHint'); });
+  $('mIn').addEventListener('keydown',e=>{
+    if(e.key!=='Enter') return;
+    setTimeout(()=>{ ent(today(),true).m=e.target.value; save(); hint('mHint'); },0);
+  });
+  $('eIn').addEventListener('keydown',e=>{
+    if(e.key!=='Enter') return;
+    setTimeout(()=>{ ent(today(),true).e=e.target.value; save(); hint('eHint'); },0);
+  });
 
   $('installGo').addEventListener('click',async()=>{
     $('installBar').classList.remove('on');
