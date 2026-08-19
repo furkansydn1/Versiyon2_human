@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>V2 — Sicil</title>
+<meta name="description" content="Günlük disiplin sicili.">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0E1218">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="V2">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" href="./favicon-32.png" sizes="32x32">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,700&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#0E1218; --panel:#151B23; --panel-2:#1C232D; --panel-3:#242C38;
+  --bone:#E8E3D8; --bone-dim:#B9B4A8; --ash:#7E858F; --ash-dim:#5D646E;
+  --brass:#C4A159; --brass-dim:#8A7440; --brass-glow:rgba(196,161,89,.13);
+  --verd:#5A9186; --verd-dim:#3E635C; --verd-glow:rgba(90,145,134,.12);
+  --rust:#A85A3C;
+  --edge:rgba(232,227,216,.075); --edge-2:rgba(232,227,216,.16);
+  --disp:'Bodoni Moda', Didot, 'Playfair Display', Georgia, serif;
+  --body:'Archivo', system-ui, -apple-system, sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0; background:var(--void); color:var(--bone); font-family:var(--body);
+  min-height:100dvh; overscroll-behavior-y:none;
+  background-image:
+    radial-gradient(ellipse 120% 55% at 50% -12%, rgba(90,145,134,.10), transparent 62%),
+    radial-gradient(ellipse 90% 40% at 50% 105%, rgba(196,161,89,.05), transparent 60%);
+  background-attachment:fixed;
+}
+::selection{background:var(--brass-glow); color:var(--bone);}
+::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-thumb{background:var(--panel-3);border-radius:3px;}
+:focus-visible{outline:1.5px solid var(--brass); outline-offset:3px;}
+button{font-family:inherit;}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+
+.wrap{max-width:600px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;padding-bottom:92px;}
+
+/* ---------- masthead ---------- */
+.masthead{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 22px 12px;position:sticky;top:0;z-index:40;
+  background:linear-gradient(180deg,var(--void) 62%,rgba(14,18,24,.86) 88%,transparent);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+.mark{display:flex;align-items:baseline;gap:9px;}
+.mark .v{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:.02em;}
+.mark .label{font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--ash-dim);}
+.ledger-chip{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ash);
+  border:1px solid var(--edge);border-radius:100px;padding:5px 11px;}
+.ledger-chip b{color:var(--brass);font-weight:600;}
+
+/* ---------- desktop tabs ---------- */
+.tabs{display:flex;gap:26px;padding:0 22px;margin-bottom:6px;border-bottom:1px solid var(--edge);}
+.tabs button{background:none;border:none;padding:11px 0 12px;cursor:pointer;position:relative;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ash-dim);transition:color .2s;}
+.tabs button.on{color:var(--bone);}
+.tabs button.on::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1.5px;background:var(--brass);}
+.tabs button:hover{color:var(--bone-dim);}
+
+main{flex:1;padding:0 22px;}
+.pane{display:none;}
+.pane.on{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(9px);}to{opacity:1;transform:translateY(0);}}
+.pane.on > *{animation:fadeUp .42s cubic-bezier(.2,.7,.3,1) both;}
+
+/* ---------- SEAL (signature) ---------- */
+.sealwrap{display:flex;flex-direction:column;align-items:center;padding:22px 0 6px;}
+.seal{position:relative;width:168px;height:168px;}
+.seal svg{display:block;overflow:visible;}
+.seg{fill:none;stroke:var(--panel-3);stroke-width:3.5;stroke-linecap:round;transition:stroke .5s ease;}
+.seg.earned{stroke:var(--brass);}
+.prog-track{fill:none;stroke:rgba(232,227,216,.06);stroke-width:5;}
+.prog-arc{fill:none;stroke:var(--verd);stroke-width:5;stroke-linecap:round;
+  transition:stroke-dashoffset .75s cubic-bezier(.3,.8,.3,1), stroke .4s;}
+.seal-core{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+.seal-num{font-family:var(--disp);font-weight:400;font-size:40px;line-height:1;color:var(--brass);}
+.seal-name{font-family:var(--mono);font-size:8.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--ash);}
+.seal-frac{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--bone-dim);margin-top:5px;}
+
+.dayline{text-align:center;margin-top:12px;}
+.dayline .d{font-family:var(--disp);font-size:20px;font-weight:400;letter-spacing:.01em;}
+.dayline .meta{font-family:var(--mono);font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ash);margin-top:7px;}
+.dayline .meta b{color:var(--brass);font-weight:600;}
+.dayline .meta i{font-style:normal;color:var(--ash-dim);margin:0 7px;}
+
+/* ---------- notices ---------- */
+.notice{border-left:2px solid;padding:11px 0 11px 13px;margin:18px 0;font-size:12.8px;line-height:1.6;color:var(--bone-dim);display:none;}
+.notice.on{display:block;animation:fadeUp .4s both;}
+.notice b{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:5px;font-weight:600;}
+.notice.warn{border-color:var(--rust);} .notice.warn b{color:var(--rust);}
+.notice.light{border-color:var(--brass-dim);} .notice.light b{color:var(--brass);}
+.notice.full{border-color:var(--verd);} .notice.full b{color:var(--verd);}
+
+/* ---------- ledger sections ---------- */
+.sec{margin-top:30px;}
+.sec-head{display:flex;align-items:center;gap:12px;margin-bottom:4px;}
+.sec-head h3{font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--ash);margin:0;font-weight:600;}
+.sec-head .rule{flex:1;height:1px;background:var(--edge);}
+.sec-head .n{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--ash-dim);}
+
+.row{display:grid;grid-template-columns:26px 1fr 22px;gap:12px;align-items:start;
+  padding:15px 0;border-bottom:1px solid var(--edge);cursor:pointer;}
+.row:last-child{border-bottom:none;}
+.box{width:19px;height:19px;margin-top:2px;border:1.5px solid var(--edge-2);position:relative;transition:.2s;}
+.box::after{content:'';position:absolute;inset:3px;background:var(--brass);
+  transform:scale(0) rotate(-14deg);opacity:0;transition:transform .24s cubic-bezier(.3,1.5,.5,1),opacity .18s;}
+.row.done .box{border-color:var(--brass-dim);}
+.row.done .box::after{transform:scale(1) rotate(0);opacity:1;}
+.rt{font-size:14.6px;line-height:1.48;letter-spacing:-.003em;transition:color .25s;}
+.row.done .rt{color:var(--ash);}
+.rc{font-family:var(--mono);font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ash-dim);margin-bottom:6px;}
+.rw{font-size:12.4px;line-height:1.62;color:var(--ash);margin-top:9px;padding-left:11px;
+  border-left:1px solid var(--edge-2);display:none;}
+.row.open .rw{display:block;animation:fadeUp .3s both;}
+.exp{background:none;border:none;color:var(--ash-dim);cursor:pointer;padding:2px 0 0;line-height:1;
+  font-family:var(--mono);font-size:15px;transition:transform .25s,color .2s;transform-origin:center;}
+.row.open .exp{transform:rotate(45deg);color:var(--brass);}
+.exp:hover{color:var(--bone-dim);}
+
+/* ---------- word block ---------- */
+.word{margin-top:34px;padding:20px;border:1px solid var(--edge);background:
+  linear-gradient(160deg, rgba(196,161,89,.045), transparent 55%), var(--panel);}
+.word .kicker{font-family:var(--mono);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--brass);}
+.word .term{font-family:var(--disp);font-size:30px;font-weight:400;margin:9px 0 2px;letter-spacing:.005em;}
+.word .pos{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ash-dim);}
+.word .def{font-size:13.8px;line-height:1.62;color:var(--bone-dim);margin:13px 0 0;}
+.word{scroll-margin-bottom:120px;}
+.word .ex{font-size:12.8px;line-height:1.6;color:var(--ash);margin-top:12px;padding-left:12px;border-left:1px solid var(--brass-dim);font-style:italic;}
+
+label.lab{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ash);display:block;margin:20px 0 9px;}
+input[type=text],textarea{width:100%;background:rgba(14,18,24,.55);border:1px solid var(--edge-2);color:var(--bone);
+  font-family:var(--body);font-size:14px;padding:12px 13px;line-height:1.6;resize:vertical;border-radius:0;}
+input::placeholder,textarea::placeholder{color:var(--ash-dim);}
+input:focus,textarea:focus{outline:none;border-color:var(--brass-dim);background:rgba(14,18,24,.8);}
+.hint{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--verd);height:13px;margin-top:8px;}
+
+/* ---------- journal ---------- */
+.block{margin-top:30px;}
+.block .kicker{font-family:var(--mono);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--brass);}
+.block .q{font-family:var(--disp);font-size:23px;font-weight:400;line-height:1.32;margin:11px 0 6px;}
+.block .sub{font-size:12.6px;color:var(--ash);line-height:1.6;margin:0 0 15px;}
+.entry{padding:16px 0;border-bottom:1px solid var(--edge);}
+.entry:last-child{border-bottom:none;}
+.entry .dt{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass-dim);margin-bottom:9px;}
+.entry .qq{font-size:12.2px;color:var(--ash-dim);line-height:1.5;margin-bottom:4px;font-style:italic;}
+.entry .aa{font-size:13.4px;color:var(--bone-dim);line-height:1.62;margin-bottom:11px;}
+.entry .aa:last-child{margin-bottom:0;}
+.void-note{text-align:center;padding:36px 14px;color:var(--ash-dim);font-size:13px;line-height:1.7;}
+
+/* ---------- wisdom ---------- */
+.wis{border:1px solid var(--edge);padding:19px;margin-bottom:12px;background:var(--panel);position:relative;}
+.wis.locked{background:transparent;border-style:dashed;border-color:rgba(232,227,216,.09);}
+.wis .n{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--brass-dim);}
+.wis .t{font-family:var(--disp);font-size:19px;font-weight:400;margin:8px 0 10px;line-height:1.3;}
+.wis .b{font-size:13.4px;line-height:1.7;color:var(--bone-dim);}
+.wis.locked .t{color:var(--ash-dim);}
+.wis .lk{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ash-dim);display:flex;align-items:center;gap:9px;}
+.wis .lk span{width:16px;height:16px;border:1px solid var(--ash-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;}
+
+/* ---------- progress ---------- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--edge);border:1px solid var(--edge);margin-top:22px;}
+.cell{background:var(--void);padding:17px 15px;}
+.cell .v{font-family:var(--disp);font-size:29px;font-weight:400;line-height:1;}
+.cell .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ash);margin-top:9px;}
+.heat{display:grid;grid-template-columns:repeat(15,1fr);gap:5px;margin-top:14px;}
+.hc{aspect-ratio:1;background:rgba(232,227,216,.06);}
+.hc.full{background:var(--verd);} .hc.light{background:var(--brass-dim);} .hc.part{background:rgba(90,145,134,.3);}
+.hc.today{box-shadow:0 0 0 1.5px var(--bone);}
+.key{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ash-dim);}
+.key i{width:8px;height:8px;display:inline-block;margin-right:6px;vertical-align:middle;}
+.meter{margin-top:12px;}
+.meter .lab2{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ash);margin-bottom:9px;}
+.meter .trk{height:3px;background:rgba(232,227,216,.08);}
+.meter .fil{height:100%;background:var(--brass);transition:width .8s cubic-bezier(.3,.8,.3,1);}
+.meter .fil.v{background:var(--verd);}
+.bar{margin-bottom:13px;}
+.bar .l{display:flex;justify-content:space-between;font-size:12.4px;color:var(--bone-dim);margin-bottom:6px;}
+.bar .l span:last-child{font-family:var(--mono);font-size:11px;color:var(--ash);}
+.bar .t{height:3px;background:rgba(232,227,216,.08);}
+.bar .f{height:100%;background:var(--verd-dim);transition:width .7s;}
+.syncline{display:flex;align-items:center;gap:10px;font-size:12.4px;color:var(--ash);line-height:1.6;margin-top:14px;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--ash-dim);flex-shrink:0;}
+.dot.on{background:var(--verd);box-shadow:0 0 0 3px var(--verd-glow);}
+.dot.off{background:var(--brass-dim);}
+.tiny{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ash);margin:26px 0 10px;display:block;}
+.ghost{background:none;border:1px solid var(--edge-2);color:var(--ash);font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.16em;text-transform:uppercase;padding:10px 15px;cursor:pointer;transition:.2s;margin-top:6px;}
+.ghost:hover{border-color:var(--rust);color:var(--rust);}
+
+/* ---------- bottom nav ---------- */
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:50;display:none;}
+@media (max-width:660px){
+  .tabs{display:none;}
+  .nav{display:flex;max-width:600px;margin:0 auto;
+    background:rgba(14,18,24,.93);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border-top:1px solid var(--edge);padding:11px 12px calc(11px + env(safe-area-inset-bottom));}
+  .nav button{flex:1;background:none;border:none;cursor:pointer;padding:3px 0;
+    font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ash-dim);
+    display:flex;flex-direction:column;align-items:center;gap:7px;transition:color .2s;}
+  .nav button i{display:block;width:15px;height:1.5px;background:currentColor;opacity:.35;transition:.25s;}
+  .nav button.on{color:var(--brass);} .nav button.on i{opacity:1;width:22px;}
+  .wrap{padding-bottom:86px;}
+  .seal{width:152px;height:152px;}
+  .seal-num{font-size:36px;}
+}
+
+/* ---------- modal ---------- */
+.veil{position:fixed;inset:0;background:rgba(8,10,14,.82);backdrop-filter:blur(5px);
+  display:none;align-items:center;justify-content:center;z-index:120;padding:26px;}
+.veil.on{display:flex;}
+.dlg{background:var(--panel);border:1px solid var(--edge-2);padding:34px 28px;max-width:350px;text-align:center;animation:fadeUp .4s both;}
+.dlg .rn{font-family:var(--disp);font-size:52px;color:var(--brass);line-height:1;}
+.dlg .nm{font-family:var(--mono);font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:var(--ash);margin-top:9px;}
+.dlg h4{font-family:var(--disp);font-size:22px;font-weight:400;margin:20px 0 11px;}
+.dlg p{font-size:13.4px;line-height:1.68;color:var(--bone-dim);margin:0 0 24px;}
+.dlg button{background:var(--brass);color:var(--void);border:none;padding:13px 26px;cursor:pointer;
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;}
+
+/* ---------- install prompt ---------- */
+.install{position:fixed;left:14px;right:14px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:60;
+  max-width:572px;margin:0 auto;background:var(--panel-2);border:1px solid var(--edge-2);padding:15px 16px;
+  display:none;align-items:center;gap:13px;animation:fadeUp .45s both;}
+.install.on{display:flex;}
+.install p{margin:0;flex:1;font-size:12.6px;line-height:1.5;color:var(--bone-dim);}
+.install button{background:none;border:1px solid var(--brass-dim);color:var(--brass);padding:9px 13px;cursor:pointer;
+  font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;}
+.install .x{border:none;color:var(--ash-dim);padding:9px 4px;}
+
+.boot{position:fixed;inset:0;background:var(--void);z-index:300;display:flex;align-items:center;justify-content:center;}
+.boot span{font-family:var(--disp);font-size:26px;color:var(--brass-dim);animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.35;}50%{opacity:1;}}
+</style>
+</head>
+<body>
+<div class="boot" id="boot"><span>V</span></div>
+
+<div class="wrap" id="wrap" style="display:none">
+  <header class="masthead">
+    <div class="mark"><span class="v">V2</span><span class="label">Sicil</span></div>
+    <div class="ledger-chip">Gün <b id="chipDay">0</b> / 30</div>
+  </header>
+
+  <nav class="tabs">
+    <button class="on" data-p="today">Bugün</button>
+    <button data-p="journal">Muhasebe</button>
+    <button data-p="wisdom">İlkeler</button>
+    <button data-p="progress">Sicil</button>
+  </nav>
+
+  <main>
+    <!-- ============ BUGÜN ============ -->
+    <section class="pane on" id="p-today">
+      <div class="sealwrap">
+        <div class="seal">
+          <svg viewBox="0 0 168 168" width="100%" height="100%" id="sealSvg" aria-hidden="true"></svg>
+          <div class="seal-core">
+            <div class="seal-num" id="sealNum">I</div>
+            <div class="seal-name" id="sealName">Temel</div>
+            <div class="seal-frac" id="sealFrac">0 / 0</div>
+          </div>
+        </div>
+        <div class="dayline">
+          <div class="d" id="dayDate">—</div>
+          <div class="meta">Seri <b id="mStreak">0</b><i>·</i>En uzun <span id="mLongest">0</span><i>·</i>Tam gün <span id="mTotal">0</span></div>
+        </div>
+      </div>
+
+      <div class="notice warn" id="nWarn"><b>Dün kaçtı</b>Kural tek: asla iki kez üst üste kaçırma. Bugün her şeyi yapamazsan da çekirdeği bitir, seri kırılmasın.</div>
+      <div class="notice light" id="nLight"><b>Zor gün modu</b>Çekirdek tamam, serin korundu. Bu gün seviye ilerlemesine sayılmıyor — bugüne özel görevler hâlâ açık.</div>
+      <div class="notice full" id="nFull"><b>Gün tam</b>Sicile işlendi. Şimdi kapat, yarın aynı yerden.</div>
+
+      <div class="sec">
+        <div class="sec-head"><h3>Çekirdek</h3><span class="rule"></span><span class="n" id="nCore"></span></div>
+        <div id="coreList"></div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-head"><h3>Bugüne Özel</h3><span class="rule"></span><span class="n" id="nRot"></span></div>
+        <div id="rotList"></div>
+      </div>
+
+      <div class="word">
+        <div class="kicker">Günün Kelimesi</div>
+        <div class="term" id="wTerm">—</div>
+        <div class="pos" id="wPos"></div>
+        <div class="def" id="wDef"></div>
+        <div class="ex" id="wEx"></div>
+        <label class="lab" for="wIn">Kendi cümlende kullan</label>
+        <input type="text" id="wIn" placeholder="Cümleni yaz…" autocomplete="off">
+        <div class="hint" id="wHint"></div>
+      </div>
+    </section>
+
+    <!-- ============ MUHASEBE ============ -->
+    <section class="pane" id="p-journal">
+      <div class="block">
+        <div class="kicker">Sabah — Niyet</div>
+        <div class="q" id="mQ">—</div>
+        <p class="sub">Tek cümle yeter. Akşam buraya dönüp okuyacaksın.</p>
+        <textarea id="mIn" rows="3" placeholder="Yaz…"></textarea>
+        <div class="hint" id="mHint"></div>
+      </div>
+      <div class="block">
+        <div class="kicker">Akşam — Yüzleşme</div>
+        <div class="q" id="eQ">—</div>
+        <p class="sub">Kimse okumayacak. O yüzden kendini kollamanın anlamı yok.</p>
+        <textarea id="eIn" rows="5" placeholder="Dürüstçe yaz…"></textarea>
+        <div class="hint" id="eHint"></div>
+      </div>
+      <div class="block">
+        <div class="kicker">Arşiv</div>
+        <div id="hist" style="margin-top:14px"></div>
+      </div>
+    </section>
+
+    <!-- ============ İLKELER ============ -->
+    <section class="pane" id="p-wisdom">
+      <div class="block">
+        <div class="kicker">İlkeler</div>
+        <div class="q">Sessizce biriktirdiklerin</div>
+        <p class="sub">Her seviye yeni ilkeler açar. Stoacılıktan, güç ve strateji üzerine yazılmış klasiklerden ilhamla — alıntı değil, yeniden yazılmış hâlleri.</p>
+      </div>
+      <div id="wisList" style="margin-top:18px"></div>
+    </section>
+
+    <!-- ============ SİCİL ============ -->
+    <section class="pane" id="p-progress">
+      <div class="grid2">
+        <div class="cell"><div class="v" id="sLevel">I</div><div class="k">Seviye</div></div>
+        <div class="cell"><div class="v" id="sFull">0</div><div class="k">Tam gün</div></div>
+        <div class="cell"><div class="v" id="sStreak">0</div><div class="k">Güncel seri</div></div>
+        <div class="cell"><div class="v" id="sLong">0</div><div class="k">En uzun seri</div></div>
+      </div>
+
+      <span class="tiny">30 Günlük Taahhüt</span>
+      <div class="meter"><div class="lab2"><span id="vowTxt">—</span><span id="vowNum"></span></div>
+        <div class="trk"><div class="fil v" id="vowBar" style="width:0"></div></div></div>
+
+      <span class="tiny">Sonraki Seviye</span>
+      <div class="meter"><div class="lab2"><span id="nxTxt">—</span><span id="nxNum"></span></div>
+        <div class="trk"><div class="fil" id="nxBar" style="width:0"></div></div></div>
+
+      <span class="tiny">Son 30 Gün</span>
+      <div class="heat" id="heat"></div>
+      <div class="key">
+        <span><i style="background:var(--verd)"></i>Tam</span>
+        <span><i style="background:var(--brass-dim)"></i>Zor gün</span>
+        <span><i style="background:rgba(90,145,134,.3)"></i>Kısmi</span>
+        <span><i style="background:rgba(232,227,216,.06)"></i>Boş</span>
+      </div>
+
+      <span class="tiny">Kategori Dağılımı</span>
+      <div id="bars"></div>
+
+      <span class="tiny">Veri</span>
+      <div class="syncline"><span class="dot" id="syncDot"></span><span id="syncTxt">—</span></div>
+
+      <span class="tiny">Tehlikeli Bölge</span>
+      <button class="ghost" id="wipeBtn">Tüm sicili sil</button>
+    </section>
+  </main>
+</div>
+
+<nav class="nav">
+  <button class="on" data-p="today"><i></i>Bugün</button>
+  <button data-p="journal"><i></i>Muhasebe</button>
+  <button data-p="wisdom"><i></i>İlkeler</button>
+  <button data-p="progress"><i></i>Sicil</button>
+</nav>
+
+<div class="install" id="installBar">
+  <p id="installTxt">Ana ekrana ekle — uygulama gibi tam ekran açılır.</p>
+  <button id="installGo">Ekle</button>
+  <button class="x" id="installX">✕</button>
+</div>
+
+<div class="veil" id="veil"><div class="dlg">
+  <div class="rn" id="dRn">II</div><div class="nm" id="dNm">Düzen</div>
+  <h4 id="dH">Seviye yükseldi</h4><p id="dP"></p>
+  <button id="dClose">Devam</button>
+</div></div>
+
+<!-- =====================================================================
+     FIREBASE AYARI
+     Firebase Console → Project settings → General → "Your apps" → Web app
+     bölümündeki firebaseConfig nesnesini olduğu gibi buraya yapıştır.
+     Boş bırakırsan uygulama yerel kayıtla sorunsuz çalışmaya devam eder.
+     ===================================================================== -->
+<script>
+window.V2_FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyAQUAvWj9_0ikRXq4wG78AsVZhRIKiV5EA",
+  authDomain:        "versiyon2-a28bd.firebaseapp.com",
+  projectId:         "versiyon2-a28bd",
+  storageBucket:     "versiyon2-a28bd.firebasestorage.app",
+  messagingSenderId: "47204721876",
+  appId:             "1:47204721876:web:0801badf96ea05785bc741"
+};
+window.V2_USER_ID = "fk-8f2ff4839e";
+
+/* Bu iki değer birlikte çalışır. V2_USER_ID, Firestore'daki belge adın —
+   değiştirirsen sicil sıfırmış gibi görünür. Firestore güvenlik kuralındaki
+   userId ile birebir aynı olmalı. */
+</script>
+
+<script type="module">
+/* ══════════════════ ÇEKİRDEK — her gün, istisnasız ══════════════════ */
+const CORE=[
+ {id:'c_dis',cat:'Bakım',
+  t:'Sabah ve akşam ikişer dakika diş fırçala, diş ipini atlama',
+  w:'Getirisi en yüksek, ihmali en kolay alışkanlık. Buradaki istikrarın, diğer her şeydeki istikrarının göstergesi. Küçük gördüğün için değil, küçük göründüğü için önemli.'},
+ {id:'c_yatak',cat:'Disiplin',
+  t:'Uyanır uyanmaz yatağını topla',
+  w:'Günün ilk tamamlanmış işi. Henüz gün başlamadan beynine "ben işleri bitiren biriyim" kanıtı sunar. Gün kötü giderse bile geceye toplanmış bir yatağa dönersin.'},
+ {id:'c_nefes',cat:'Beden',sc:'nefes',
+  t:'4-7-8 nefes',
+  w:'Parasempatik sinir sistemini elle devreye sokmanın en hızlı yolu. Vardiya sonrası inmeyen gerginlik ve bozulan uyku düzeni için ilaçsız müdahale.'},
+ {id:'c_kitap',cat:'Zihin',sc:'kitap',
+  t:'kesintisiz kitap oku — telefon başka odada',
+  w:'Entelektüel derinlik tek bir yerden gelir: uzun dikkat. Kısa video akışı bu kası her gün biraz daha köreltir; okumak geri kurar. "Kesintisiz" kelimesi süreden daha önemli.'},
+ {id:'c_kelime',cat:'Öğrenme',auto:true,
+  t:'Günün kelimesini öğren ve kendi cümlende kullan',
+  w:'Kelime dağarcığı, düşüncenin çözünürlüğüdür. Adını koyamadığın duyguyu yönetemez, tarif edemediğin fikri savunamazsın. Kullanmadığın kelime senin değildir.'}
+];
+const SC={nefes:[4,5,6,8,10,12],kitap:[10,15,20,25,30,40]};
+function coreText(c,l){
+  if(c.sc==='nefes') return `${c.t} — ${SC.nefes[l-1]} tur (4 sn al, 7 sn tut, 8 sn ver)`;
+  if(c.sc==='kitap') return `${SC.kitap[l-1]} dakika ${c.t}`;
+  return c.t;
+}
+
+/* ══════════════════ ROTASYON HAVUZU — 66 niş görev ══════════════════ */
+const POOL=[
+/* BEDEN */
+{id:'b1',c:'Beden',t:'Bir öğünü tam sessizlikte ye: müzik yok, ekran yok, konuşma yok',w:'Farkındalıkla yemek, tokluk sinyalini geri açar. Ayrıca 15 dakika hiçbir uyaran olmadan durabildiğini kanıtlar.'},
+{id:'b2',c:'Beden',t:'Yürüyüşünü kulaklıksız yap — en az 20 dakika, hiçbir şey dinlemeden',w:'Sürekli ses, düşüncenin toplanmasını engeller. Çoğu net fikir tam da bu boşlukta gelir.'},
+{id:'b3',c:'Beden',t:'Bugün asansör yok. Her katı merdivenle çık',w:'Karar vermeyi gerektirmeyen tek satırlık kural. En iyi alışkanlıklar müzakereye kapalı olanlardır.'},
+{id:'b4',c:'Beden',t:'Duşun son 30 saniyesini soğuk suyla bitir — bağırmadan',w:'Kontrollü, zararsız, gönüllü rahatsızlık. İstemediğin şeyi yapma kasını günde 30 saniyeye çalıştırır.'},
+{id:'b5',c:'Beden',t:'Alarm ilk çaldığında kalk. Erteleme tuşuna dokunma',w:'Günün ilk kararı. Onu ertelersen, ertelemek günün varsayılan ayarı olur.'},
+{id:'b6',c:'Beden',t:'Son kafeinini öğleden sonra 15:00\'ten önce bitir',w:'Kafeinin yarı ömrü 5-6 saat. Uykusuzluğun sebebi çoğu zaman gece değil, öğleden sonra alınan karar.'},
+{id:'b7',c:'Beden',t:'60 saniye plank tut. Titrediğin yerde 10 saniye daha dur',w:'Ölçülebilir, bahanesiz. Asıl çalışma titremenin başladığı yerden sonra oluyor.'},
+{id:'b8',c:'Beden',t:'Oturduğun her saat başı ayağa kalk, iki dakika hareket et',w:'Uzun oturuş, egzersizle telafi edilemeyen ayrı bir risk. Vardiya arası masada geçen saatler burada birikir.'},
+{id:'b9',c:'Beden',t:'Yatmadan 45 dakika önce tüm ekranları kapat, ışıkları kıs',w:'Uykuya geçiş süresini kısaltır. En zor görevlerden biri, o yüzden en değerlilerinden.'},
+
+/* ZİHİN */
+{id:'z1',c:'Zihin',t:'Dopamin orucu: 60 dakika hiçbir ekrana bakma. Sıkıl, dayan, ne hissettiğini not et',w:'Sıkılma eşiğin düştükçe derin düşünme kapasiten de düşer. Bu görev eşiği geri yükseltir. Zor gelmesi, tam da neden gerektiğinin kanıtı.'},
+{id:'z2',c:'Zihin',t:'10 dakika hiçbir şey yapmadan otur. Müzik yok, telefon yok, plan yok',w:'Zihin boş kaldığında ertelenmiş meseleleri yüzeye çıkarır. Rahatsız edici olması işe yaradığı anlamına gelir.'},
+{id:'z3',c:'Zihin',t:'Telefonunu bugün üç saat gri tonlamada kullan',w:'Renk, uygulamaların dikkat çekme aracı. Gri ekran, telefonu bilinçli kullanılan bir alete indirger.'},
+{id:'z4',c:'Zihin',t:'Sosyal medyada bugün hiçbir şeyi beğenme, yorum yapma. Sadece izle ve çık',w:'Etkileşim, algoritmanın seni tutma kancası. Sessiz kalmak hem süreyi hem etkiyi kırar.'},
+{id:'z5',c:'Zihin',t:'Katılmadığın bir görüşü, savunanların en güçlü hâliyle yaz',w:'Zeka, karşı tarafı en zayıf değil en güçlü hâliyle anlayabilmektir. Çürütemediğin şeyi henüz anlamamışsındır.'},
+{id:'z6',c:'Zihin',t:'Bir konuyu iki dakika sesli anlat, kaydet, sonra kendini dinle',w:'Kendi sesini dışarıdan duymak, düşüncendeki boşlukları anında gösterir. Rahatsız edici ama hızlı bir ayna.'},
+{id:'z7',c:'Zihin',t:'Bugün "bilmiyorum" cümlesini en az bir kez kur ve orada bırak',w:'Bilmediğini söyleyebilmek, öğrenmenin tek girişi. Doldurma refleksi çoğu zaman ego kaynaklı.'},
+{id:'z8',c:'Zihin',t:'Uzun bir makaleyi sonuna kadar bitir. Yarım bırakma',w:'Yarım bırakılan içerik hiç okunmamıştan daha zararlı: bildiğini sanırsın, bilmezsin.'},
+{id:'z9',c:'Zihin',t:'Bugün ilk aklına gelen cevabı verme. Üç saniye bekle, sonra konuş',w:'Uyaranla tepki arasındaki boşluk, özgürlüğün fiilen yaşadığı yer. Üç saniye bu boşluğu görünür kılar.'},
+{id:'z10',c:'Zihin',t:'Telefonunda bugün en çok vakit alan uygulamanın süresini yaz',w:'Ölçmediğin şeyi yönetemezsin. Rakamı çıplak görmek çoğu zaman tek başına davranışı değiştirir.'},
+{id:'z11',c:'Zihin',t:'Bir işi bitirene kadar ikinci bir sekme açma',w:'Bağlam değiştirme, kaybettiğin zamanın görünmeyen kısmı. Tek sekme, dikkatin dışa vurumu.'},
+
+/* DİSİPLİN */
+{id:'d1',c:'Disiplin',t:'Günün en zor işini ilk iki saatte yap. Kolay işler beklesin',w:'İrade gün boyunca tükenir. Zor işi öne almak, günün kalanını gerçekten serbest bırakır.'},
+{id:'d2',c:'Disiplin',t:'Uyandıktan sonraki ilk 30 dakika telefona dokunma',w:'Günün ilk yarım saatini kim belirlerse günün tonunu o belirler. Şu an o kişi sen değilsin.'},
+{id:'d3',c:'Disiplin',t:'Bugün bir isteğe bilinçli olarak "hayır" de. Gerekçe uydurma',w:'Her "evet" zamandan bir çekim. Gerekçesiz hayır diyebilmek, sınırın gerçekten senin olduğunun kanıtı.'},
+{id:'d4',c:'Disiplin',t:'Bir alışverişi 24 saat ertele. Yarın hâlâ istiyorsan al',w:'Anlık isteklerin çoğu 24 saat yaşamaz. Bu tek kural, yıl sonunda bütçende görünür.'},
+{id:'d5',c:'Disiplin',t:'Ertelediğin, 20 dakikadan kısa süren bir işi bugün bitir',w:'Bitmemiş küçük işler zihinde arka planda çalışır ve enerjini sessizce tüketir.'},
+{id:'d6',c:'Disiplin',t:'Yarının üç maddelik listesini bu gece yaz. Sabah düşünme, uygula',w:'Sabah kararsızlığı günün en pahalı israfı. Kararı gece verirsen sabah sadece uygularsın.'},
+{id:'d7',c:'Disiplin',t:'Sosyal medyayı bugün tek seferde, önceden belirlediğin bir saatte aç',w:'Asıl sorun toplam süre değil, sürekli bölünme. Toplu tüketim dikkat bütünlüğünü korur.'},
+{id:'d8',c:'Disiplin',t:'Bugün hiçbir şeyden şikayet etme. Kaydını tut',w:'Şikayet, çözme sorumluluğunu üstlenmeden rahatlama yöntemidir. Kesildiğinde ya çözersin ya susarsın.'},
+{id:'d9',c:'Disiplin',t:'Bugün bir şeyi bilerek yavaş yap: yaz, yürü ya da ye — acele etme',w:'Acele çoğu zaman verimlilik değil, kaçış. Bilerek yavaşlamak neyden kaçtığını gösterir.'},
+{id:'d10',c:'Disiplin',t:'Telefonunu bir saat boyunca başka bir odada bırak',w:'İradene güvenme, ortamına güven. Telefon görüş alanındayken dikkatinin bir kısmı hep onda.'},
+{id:'d11',c:'Disiplin',t:'Bugün başlattığın her işi bitir. O yüzden az iş başlat',w:'İstikrar çok başlamakla değil, başladığını bitirmekle kurulur. Az söz ver, hepsini tut.'},
+
+/* ÖĞRENME */
+{id:'o1',c:'Öğrenme',t:'15 dakikanı tek bir beceriye ayır. İlerlemesen bile otur',w:'Günde 15 dakika yılda 90 saat. Hiçbir beceri bu kadar tekrara direnemez.'},
+{id:'o2',c:'Öğrenme',t:'Merak ettiğin bir konuyu araştır, üç maddede muhasebe defterine yaz',w:'Merakı takip etmek, disiplin gerektirmeyen tek öğrenme biçimi. Yazmak onu kalıcı kılar.'},
+{id:'o3',c:'Öğrenme',t:'Bir konuyu hiç bilmeyen birine anlatır gibi sesli anlat. Takıldığın yeri işaretle',w:'Feynman yöntemi. Takıldığın yer, tam olarak bilmediğin yerdir — başka hiçbir test bu kadar hızlı sonuç vermez.'},
+{id:'o4',c:'Öğrenme',t:'Yabancı dilde 10 dakikalık bir içerik oku ya da izle — altyazısız dene',w:'Dil, günlük kısa temasla ilerler. Haftada bir uzun seans neredeyse hiçbir şey yapmaz.'},
+{id:'o5',c:'Öğrenme',t:'Bugünkü kelimeyi gerçek bir konuşmada kullan',w:'Pasif kelime bilgisi işe yaramaz. Ağzından bir kez çıkan kelime artık senindir.'},
+{id:'o6',c:'Öğrenme',t:'İzlediğin ya da okuduğun bir şeyden çıkan tek dersi yaz. Özet değil, ders',w:'Özet bilgiyi tekrarlar, ders davranışı değiştirir. Aradaki fark tüketimle eğitim arasındaki fark.'},
+{id:'o7',c:'Öğrenme',t:'Bugün bir şeyi tutorial\'sız, sıfırdan yapmayı dene',w:'Rehberle yapılan iş öğretmez, sadece bitirir. Takılmak öğrenmenin kendisidir.'},
+
+/* İLİŞKİ */
+{id:'i1',c:'İlişki',t:'Eşine somut bir şey için teşekkür et. "Her şey için" değil — o şey için',w:'Spesifik takdir, genel iltifattan kat kat ağır basar. Genel olan duyulur, spesifik olan hatırlanır.'},
+{id:'i2',c:'İlişki',t:'Uzun süredir konuşmadığın birine ilk mesajı sen at',w:'İlişkiler bakımla yaşar. İlk adımı atmak zayıflık değil inisiyatiftir; bekleyen taraf her zaman kaybeder.'},
+{id:'i3',c:'İlişki',t:'Bugün bir konuşmada sözünü kesmeden sonuna kadar dinle',w:'Çoğu insan dinlemez, cevabını hazırlar. Gerçekten dinlemek en az kullanılan güç becerisi.'},
+{id:'i4',c:'İlişki',t:'Kimseye söylemeyeceğin bir iyilik yap',w:'Anlatılmayan iyilik karakterdir, anlatılan performanstır. Aradaki farkı sadece sen bilirsin — yeterli.'},
+{id:'i5',c:'İlişki',t:'Bir tartışmada haklı çıkmak yerine anlamayı seç',w:'Haklı çıkmak kısa vadeli tatmin, anlaşılmak uzun vadeli güç. İkisini aynı anda alamazsın.'},
+{id:'i6',c:'İlişki',t:'Birinin arkasından konuşma fırsatı çıkarsa sus',w:'Yokken savunduğun insan, varken güvendiğin insandır. Bu itibarın en sessiz yapı taşı.'},
+{id:'i7',c:'İlişki',t:'Övgü aldığında sadece "teşekkür ederim" de. Küçültme, açıklama yapma',w:'Övgüyü küçültmek tevazu değil, rahatsızlık. Sade kabul etmek daha zor ve daha sağlam.'},
+
+/* RUH */
+{id:'r1',c:'Ruh',t:'Sabah iki dakika: bugün ne ters gidebilir, nasıl karşılarsın?',w:'Olumsuzu önceden zihinde yaşamak, gerçekleştiğinde şoku alır. Sürpriz olmayan şey seni sarsmaz.'},
+{id:'r2',c:'Ruh',t:'Bugün seni sinirlendiren şeyi yaz: kontrolünde miydi?',w:'Öfkenin büyük kısmı kontrolünde olmayana harcanan enerjidir. Ayrımı yazınca öfke kendiliğinden küçülür.'},
+{id:'r3',c:'Ruh',t:'Bugünün son günün olsaydı neyi değiştirirdin? Tek cümle yaz',w:'Zamanın sınırlı olduğunu unutmak onu israf etmenin en kolay yolu. Kasvet için değil, netlik için.'},
+{id:'r4',c:'Ruh',t:'Aynada 30 saniye kendine bak. Yorum yapma, sadece bak',w:'Kendini yargılamadan görebilmek nadir bir beceri. İlk 10 saniye rahatsız, sonrası açıklayıcı.'},
+{id:'r5',c:'Ruh',t:'Bugün kendine kurduğun sert bir cümleyi fark et ve yeniden yaz',w:'İç ses de bir alışkanlıktır ve fark edilmeden değişmez. Kendine söylediklerini bir arkadaşına söyler miydin?'},
+{id:'r6',c:'Ruh',t:'30 dakika planlı yalnızlık: kimse yok, ekran yok',w:'Kendiyle vakit geçirmeyen kişi kendini başkalarının tanımlarından öğrenir. Yalnızlık kaçınılan değil, ayrılan bir zaman olmalı.'},
+{id:'r7',c:'Ruh',t:'Sahip olduğun üç sıradan şeyi yaz. Büyükleri sayma',w:'Şükran listesi büyük şeylerle işe yaramaz — onları zaten sayıyorsun. İşe yarayan, fark edilmeyenler.'},
+{id:'r8',c:'Ruh',t:'Kendine bir mektup yaz. 30 gün sonra okuyacaksın',w:'Bugünkü hâlini gelecekteki hâline anlatmak, ilerlemeyi hissetmenin en somut yolu. Hafıza yalan söyler, yazı söylemez.'},
+{id:'r9',c:'Ruh',t:'Elinden çıkarabileceğin bir eşya bul ve gerçekten çıkar',w:'Biriktirdiğin her şey senden bir parça dikkat alır. Azalt, hafifle.'},
+
+/* ZANAAT */
+{id:'k1',c:'Zanaat',t:'20 dakika bir şey üret. Bitmesi gerekmiyor, sadece üret',w:'Üretim tüketimin panzehiri. Bitirme baskısı olmadan başlamak, en sık takıldığın yeri ortadan kaldırır.'},
+{id:'k2',c:'Zanaat',t:'Yarım kalan bir projeni aç, 15 dakika üzerinde çalış, sonra kapat',w:'Yarım işler suçluluk üretir. 15 dakika, "bitirmeliyim" baskısını kaldırıp hareketi geri getirir.'},
+{id:'k3',c:'Zanaat',t:'Bir fikri beş maddede yaz, sonra en zayıfını sil',w:'Seçmek, üretmenin ikinci yarısı. Silmeyi öğrenmeden iyi iş çıkmaz.'},
+{id:'k4',c:'Zanaat',t:'Bugün ürettiğin şeyi kimseye gösterme. Sadece bitir',w:'Anlatmak, beyne sahte bir tamamlanma hissi verir ve bitirme motivasyonunu düşürür. Önce bitir, sonra görülsün.'},
+{id:'k5',c:'Zanaat',t:'Kendi işinden bir şeyi ölç: süre, sayı ya da maliyet. Tahmin etme, ölç',w:'Tahmin rahatlatır, ölçüm geliştirir. Aradaki fark genelde utandırıcı ve öğreticidir.'},
+{id:'k6',c:'Zanaat',t:'Bugün bir şeyi ilk seferde doğru yapmaya çalış. Sonra düzeltme',w:'"Sonra düzeltirim" alışkanlığı işi ikiye katlar. Dikkatle bir kez, aceleyle üç kezden hızlıdır.'},
+{id:'k7',c:'Zanaat',t:'Beğendiğin bir işi parçalarına ayır: neden iyi? Üç sebep yaz',w:'Zevk analiz edilmeden taklit edilir. Analiz edilirse öğrenilir.'},
+
+/* SERMAYE */
+{id:'s1',c:'Sermaye',t:'Bugünün tüm harcamalarını tek tek yaz. Yuvarlama',w:'Bütçe tutmayanların ortak özelliği rakamları bilmemek değil, bakmamak. Tek gün bile aynayı kurar.'},
+{id:'s2',c:'Sermaye',t:'Bir aboneliğini gözden geçir: son 30 günde gerçekten kullandın mı?',w:'Otomatik ödemeler görünmez olduğu için birikir. Görünür hâle gelen gider çoğu zaman iptal edilir.'},
+{id:'s3',c:'Sermaye',t:'Gelirini artıracak tek bir somut adım at. 15 dakika yeter',w:'Uzun vadeli hedefler günlük eyleme çevrilmediği sürece hayal kalır. 15 dakikalık versiyonu her hedefin vardır.'},
+{id:'s4',c:'Sermaye',t:'Bugün bir şeyi satın almak yerine kendin yapmayı dene',w:'Her beceri, ileride ödemek zorunda kalmayacağın bir fatura. Bağımsızlık burada başlar.'},
+{id:'s5',c:'Sermaye',t:'Elindeki bir varlığın — zaman, beceri ya da eşya — nakde dönüşme yolunu üç maddede yaz',w:'Sahip olduklarını pasif değil işleyen varlık olarak görmek, finansal düşüncenin temel geçişi.'}
+];
+
+/* ══════════════════ 45 NİŞ KELİME ══════════════════ */
+const WORDS=[
+{w:'İstiğna',p:'isim',d:'Kimseye muhtaç olmama hâli; tok gözlülük, istemekten uzak durma.',e:'Teklifi reddetmesi kibirden değil, istiğnasındandı.'},
+{w:'Teemmül',p:'isim',d:'Bir konuyu acele etmeden, enine boyuna düşünme.',e:'Cevabını teemmül ettikten sonra verdi, o yüzden geri almadı.'},
+{w:'Teyakkuz',p:'isim',d:'Uyanık ve tetikte olma hâli; gafleti bırakma.',e:'Vardiya boyunca teyakkuzunu korudu.'},
+{w:'Uzlet',p:'isim',d:'İnsanlardan bilerek uzaklaşıp yalnız kalma.',e:'Haftada bir gün kendine uzlet ayırıyordu.'},
+{w:'Zapturapt',p:'isim',d:'Sıkı düzen ve denetim altında tutma.',e:'Kendi gününü zapturapt altına almadan kimseyi yönetemezsin.'},
+{w:'Liyakat',p:'isim',d:'Bir işi hak edecek yeterlilik ve ehliyet.',e:'Terfi liyakate göre değil, tanıdığa göre verilmişti.'},
+{w:'İzzetinefis',p:'isim',d:'Kişinin kendine duyduğu saygı; onurunu koruma duygusu.',e:'Yardımı reddetti, izzetinefsine dokunmuştu.'},
+{w:'Ceht',p:'isim',d:'Bir şeyi başarmak için gösterilen ısrarlı çaba.',e:'Yetenekten çok cehtiyle geldi bu noktaya.'},
+{w:'İhtimam',p:'isim',d:'Özenle, dikkatle ilgilenme.',e:'İşine gösterdiği ihtimam, sonuçtan önce belli oluyordu.'},
+{w:'Rehavet',p:'isim',d:'Gevşeklik; işleri savsaklatan tatlı tembellik hâli.',e:'Başarıdan sonra gelen rehavet, düşüşün ilk işareti.'},
+{w:'Atalet',p:'isim',d:'Hareketsizlik, eylemsizlik; durgunluk.',e:'Ataletten çıkmanın tek yolu küçük de olsa bir adım atmaktı.'},
+{w:'Tenakuz',p:'isim',d:'Kendi içinde çelişme; söz ve davranışın birbirini tutmaması.',e:'Söyledikleriyle yaptıkları arasındaki tenakuz herkesin gözünden kaçmadı.'},
+{w:'Bedahet',p:'isim',d:'Apaçıklık; ispata gerek duymayacak kadar belli olma.',e:'Sorunun kaynağı bedahet derecesinde ortadaydı.'},
+{w:'İnfial',p:'isim',d:'Ani ve şiddetli öfke tepkisi; içerleme.',e:'İlk infialini geçirmeden hiçbir mesaja cevap vermiyordu.'},
+{w:'Mahviyet',p:'isim',d:'Kendini geri planda tutma; gösterişsiz alçakgönüllülük.',e:'Bildiğini gösterme telaşı yoktu; mahviyeti sessizce ağır basıyordu.'},
+{w:'Tefahür',p:'isim',d:'Övünme, kendini üstün gösterme çabası.',e:'Anlattıklarının yarısı bilgi, yarısı tefahürdü.'},
+{w:'Hodbin',p:'sıfat',d:'Yalnız kendini düşünen; bencil.',e:'Hodbin biri değildi ama sınırlarını da bilirdi.'},
+{w:'Mürüvvet',p:'isim',d:'Mertlik, insanlık; karşılık beklemeden iyilik yapma.',e:'Mürüvveti, kimsenin görmediği anlarda ortaya çıkardı.'},
+{w:'Şecaat',p:'isim',d:'Yiğitlik; korkuya rağmen doğru bildiğini yapabilme.',e:'Şecaat, korkusuzluk değil, korkuya rağmen ilerlemektir.'},
+{w:'Müsamaha',p:'isim',d:'Hoşgörü; kusuru görüp üstünde durmama.',e:'Müsamahasının bir sınırı vardı ve o sınır saygıydı.'},
+{w:'Peyderpey',p:'zarf',d:'Azar azar, birbiri ardınca.',e:'Borcunu peyderpey kapattı, tek seferde değil.'},
+{w:'Tedricen',p:'zarf',d:'Yavaş yavaş, aşama aşama.',e:'Alışkanlığı tedricen yerleşti; bir günde değil.'},
+{w:'Kemal',p:'isim',d:'Olgunluk; eksiksizliğe ulaşmış hâl.',e:'Bilgi kemale erdiğinde gösterme ihtiyacı azalır.'},
+{w:'Nakısa',p:'isim',d:'Eksiklik, kusur.',e:'En büyük nakısası sabırsızlığıydı ve bunu biliyordu.'},
+{w:'Nedamet',p:'isim',d:'Pişmanlık; yapılanın yanlışlığını sonradan anlama.',e:'Nedamet duymak yetmez, telafi gerekir.'},
+{w:'İstidat',p:'isim',d:'Doğuştan gelen yatkınlık; gelişmeye açık yetenek tohumu.',e:'İstidadı vardı ama çalışmadan hiçbir işe yaramadı.'},
+{w:'Marifet',p:'isim',d:'Ustalık, hüner; bilerek yapabilme becerisi.',e:'Marifet işi bitirmekte değil, aynı kalitede tekrarlayabilmekte.'},
+{w:'Meram',p:'isim',d:'Anlatılmak istenen asıl şey; maksat.',e:'Uzun konuştu ama meramını anlatamadı.'},
+{w:'Mefkûre',p:'isim',d:'Uğruna çaba harcanan yüksek ideal.',e:'Hedefi paraydı, mefkûresi bağımsızlık.'},
+{w:'Seciye',p:'isim',d:'Karakter; kişinin değişmeyen ahlaki yapısı.',e:'Zorluk seciyeyi yaratmaz, sadece görünür kılar.'},
+{w:'Meşrep',p:'isim',d:'Huy, mizaç; kişinin doğal eğilimi.',e:'İkisi de iyi niyetliydi ama meşrepleri hiç uyuşmadı.'},
+{w:'İrfan',p:'isim',d:'Kitaptan değil, yaşayarak elde edilen derin bilgi.',e:'Bilgisi çoktu ama irfanı henüz yetişmemişti.'},
+{w:'Tebeddül',p:'isim',d:'Bir hâlden başka bir hâle geçme; köklü değişim.',e:'Bir aylık düzen, hâlinde gözle görülür bir tebeddül yarattı.'},
+{w:'Fütursuz',p:'sıfat',d:'Hiç çekinmeden, aldırmadan hareket eden.',e:'Fütursuzca konuşmak cesaret değil, çoğu zaman dikkatsizlik.'},
+{w:'Muhkem',p:'sıfat',d:'Sağlam, sarsılmaz biçimde kurulmuş.',e:'Kararı muhkemdi; tartışma onu sarsmadı.'},
+{w:'Mütecessis',p:'sıfat',d:'Öğrenmeye ve araştırmaya düşkün; meraklı.',e:'Mütecessis biri olduğu için hiçbir konuyu yüzeyde bırakmazdı.'},
+{w:'İstiğrak',p:'isim',d:'Bir şeye tamamen dalıp kendinden geçme hâli.',e:'Çalışırken öyle bir istiğraka giriyordu ki saatler fark edilmiyordu.'},
+{w:'Tevakkuf',p:'isim',d:'Durma, duraklama; bir süre ilerlemeyi bırakma.',e:'Aylardır süren tevakkufu bugün bitti.'},
+{w:'Zühd',p:'isim',d:'Dünya malına ve gösterişe karşı bilinçli ilgisizlik.',e:'Zühdü yoksulluktan değil, tercihtendi.'},
+{w:'Sabitkadem',p:'sıfat',d:'Ayağı yere sağlam basan; sözünden ve yolundan dönmeyen.',e:'Herkes fikir değiştirirken o sabitkadem kaldı.'},
+{w:'Vecize',p:'isim',d:'Az sözle çok şey anlatan özlü cümle.',e:'Defterinin ilk sayfasına tek bir vecize yazmıştı.'},
+{w:'Mütalaa',p:'isim',d:'Bir metni okuyup üzerinde düşünerek değerlendirme.',e:'Okumakla yetinmedi, mütalaa etti.'},
+{w:'Tenkit',p:'isim',d:'Eleştiri; bir şeyin doğru ve yanlış yanlarını ayırma.',e:'Tenkidi kişisel almadığı için hızlı gelişti.'},
+{w:'Ülfet',p:'isim',d:'Alışma, kaynaşma; sık teması olan şeye ısınma.',e:'Ülfet, önce zorluğu sonra da değerini görünmez kılar.'},
+{w:'Nekes',p:'sıfat',d:'Elindekini vermeye kıyamayan; cimri.',e:'Parada değil, övgüde nekes davranıyordu.'}
+];
+
+/* ══════════════════ İLKELER ══════════════════ */
+const WIS=[
+{l:1,t:'Kontrol Çemberi',b:'Gerçekten senin elinde olan iki şey var: tepkilerin ve eylemlerin. Gerisi rüzgâr. Enerjini oraya harca, kalanının geçmesine izin ver. Bu bir teselli değil, bir enerji tasarrufu stratejisi.'},
+{l:1,t:'Kimlik Önce Gelir',b:'Alışkanlık, kimliğin kanıtıdır. "Okumaya çalışıyorum" cümlesi seni okuyucu yapmaz; okuyan biri gibi davranmak yapar. Önce kim olduğuna karar ver, sonra o kişinin yapacağını yap.'},
+{l:1,t:'Asla İki Kez Üst Üste Kaçırma',b:'Bir gün kaçırmak kazadır, iki gün kaçırmak yeni bir alışkanlığın başlangıcıdır. Mükemmel olmak zorunda değilsin — sadece iki kez üst üste durmayacaksın. Bu tek kural, listedeki her şeyden daha belirleyici.'},
+{l:2,t:'Sessiz Güç',b:'Her planını yüksek sesle paylaşmak zorunda değilsin. Anlatmak yaşamaktan çok daha kolay gelir ve beynine sahte bir tamamlanma hissi verir. Önce yap, sonra görülsün. Görülmek amaç değil, yan üründür.'},
+{l:2,t:'Küçük ve Kesin',b:'Büyük ve belirsiz hedefler seni heyecanlandırır, küçük ve kesin adımlar seni değiştirir. Bugünün görevi büyüklüğüyle değil tekrarıyla değer kazanır. Etkileyici olan hiçbir şey ilk gün etkileyici değildir.'},
+{l:2,t:'Ortamı Tasarla',b:'İradene güvenme, ortamına güven. Telefon başka odadaysa kitap okumak irade istemez. Doğru olanı kolaylaştır, yanlış olanı zorlaştır — sonra kendinle savaşmayı bırak.'},
+{l:3,t:'İtibar Eylemle İnşa Edilir',b:'Söylediklerin çabuk unutulur, yaptıkların hatırlanır. Kendine dair en güçlü kanıt anlattığın hikâye değil, kimse bakmazken tuttuğun sözdür. İnsanlar niyetini değil, düzenini görür.'},
+{l:3,t:'Rahatsızlığı Gönüllü Seç',b:'Gelişim çoğu zaman rahatsızlığın diğer adıdır. Kaçındığın şey genelde tam da ihtiyacın olandır. Rahatsızlığı kendin seçersen hayat onu sana zorla dayatmaz — dayattığında da hazırlıklı olursun.'},
+{l:3,t:'Enerji Bütçesi',b:'Her tartışmaya, her isteğe, her bildirime aynı enerjiyi vermek zorunda değilsin. Enerjini nereye harcadığın, uzun vadede kim olduğunu belirler. Dikkat, sahip olduğun en kıt sermaye.'},
+{l:4,t:'Sınırlı Zamanı Hatırla',b:'Zamanın sınırlı olduğunu unutmak, onu israf etmenin en kolay yolu. Bunu kasvetli bir düşünce olarak değil, keskinleştirici bir hatırlatma olarak taşı. Aciliyet duygusu doğru yerde kullanılırsa netlik verir.'},
+{l:4,t:'Zamanlama Bir Silahtır',b:'Her şeye anında tepki vermek zorunda değilsin. Ne zaman konuştuğun çoğu zaman ne söylediğinden daha belirleyici. Beklemek pasiflik değil, bilinçli bir seçim; ve seçildiği belli olduğunda ağırlık kazanır.'},
+{l:4,t:'Engeli Malzemeye Çevir',b:'Başına geleni yalnızca kabul etme, ondan bir şey inşa et. Engel çoğu zaman yön değiştiren ham maddedir. Yolu kapatan taş, aynı zamanda basamak yapılabilecek tek malzemedir.'},
+{l:5,t:'Geniş Açı',b:'Bugünün meselesine on yıl sonraki hâlinin gözünden bak. Bu tek soru çoğu sorunu çözmeden küçültür. Büyüklük çoğu zaman yakınlıktan kaynaklanır, gerçek boyuttan değil.'},
+{l:5,t:'Hedefi Değil Sistemi Yükselt',b:'Hedeflerinin seviyesine değil, sistemlerinin seviyesine düşersin. Motivasyon dalgalanır; sistem dalgalanmaz. İyi gününde ne yaptığın değil, kötü gününde ne yaptığın belirleyici.'},
+{l:5,t:'Kendini Fazla Açıklama',b:'Her kararının gerekçesini herkese vermek zorunda değilsin. Sürekli açıklama ihtiyacı çoğu zaman onay ihtiyacının kılık değiştirmiş hâlidir. Sessiz kalabilmek, kararın gerçekten senin olduğunun işareti.'},
+{l:6,t:'V2 Bir Varış Değil',b:'Dönüşüm tek seferlik bir eşik değil, her gün yeniden verilen bir karar. Buraya kadar geldiysen mesele artık başlamak değil, sürdürmek — ve sürdürmenin sırrı, hiçbir zaman bittiğine inanmamak. Bugün de seç.'}
+];
+
+/* ══════════════════ SORULAR ══════════════════ */
+const MORNING=[
+'Bugün kim olarak hareket edeceksin?',
+'Bugün en çok neyden kaçma ihtimalin var? Şimdiden adını koy.',
+'Bugünü kurtaracak tek eylem ne?',
+'Ne olursa olsun bugün yapacağın şey ne?',
+'Bugün seni en çok ne tetikleyebilir, tetiklendiğinde ne yapacaksın?',
+'Bugün hangi konuda susmayı seçeceksin?',
+'Bugün akşam gurur duyacağın tek şey ne olabilir?',
+'Bugün kime karşı sabırlı olman gerekecek?',
+'Bugün ertelersen yarın iki katı ağırlaşacak şey hangisi?'
+];
+const EVENING=[
+'Bugün kimden onay bekledin? Neden ona ihtiyacın vardı?',
+'Bugün yaptığın hangi şeyi, kimse görmeyecek olsa yine yapardın?',
+'Bugün ertelediğin şeyin gerçek sebebi yorgunluk muydu, korku muydu?',
+'Bugün en çok kime sabırsızdın? Onda seni rahatsız eden şey sende de var mı?',
+'Bugün söylemediğin ama söylemen gereken cümle neydi?',
+'Bugün kendini nerede olduğundan iyi gösterdin?',
+'Bugün harcadığın bir saati geri alabilsen nereye koyardın?',
+'Bugün şikayet ettiğin şeyi çözmek elinde miydi?',
+'Bugün seni en çok ne tetikledi? Tepkin ne kadar orantılıydı?',
+'Bugün kendine hangi yalanı söyledin?',
+'Bugün öğrendiğin şeyi yarın nasıl kullanacaksın? Kullanmayacaksan neden öğrendin?',
+'Biri bugününü dışarıdan izleseydi, senin neye önem verdiğini söylerdi?',
+'Bugün "sonra yaparım" dediğin şey kaç gündür sonraya kalıyor?',
+'Bugün seni yoran iş miydi, işten kaçmak mıydı?',
+'Bugünün en iyi hâlin hangi andı? Onu neden sürdüremedin?',
+'Bugün kimin gününü biraz kolaylaştırdın?',
+'Bugün aldığın hangi kararı beş yıl sonra da savunabilirsin?',
+'Bugün korktuğun ama yine de yaptığın bir şey var mı? Yoksa gün fazla güvenli geçmiş demektir.',
+'Bugün seni en çok ne oyaladı? O oyalanma neyden kaçmanı sağladı?',
+'Bugün başkasının fikrini kendi fikrin gibi mi savundun?',
+'Bugünkü hâlin, bir yıl önceki hâlinin gurur duyacağı bir hâl miydi?',
+'Bugün en çok neyi kontrol etmeye çalıştın ve kontrol edemedin?',
+'Bugün verdiğin bir sözü tuttun mu? Kime?',
+'Bugün kendine mi başkasına mı daha dürüsttün?',
+'Bugün hangi anda "keşke burada olmasaydım" dedin? Bu neyi gösteriyor?',
+'Bugün enerjini emen kişi ya da şey neydi? Ona hâlâ neden izin veriyorsun?',
+'Bugün bir şey bitirdin mi, yoksa sadece meşgul mü oldun?',
+'Bugün seni en çok ne gururlandırdı? Kimseye söylemedin, değil mi?',
+'Bugün olmadığın biri gibi davrandığın bir an oldu mu?',
+'Otuz gün sonra bugünü hatırlayacak mısın? Hatırlanacak ne yaptın?'
+];
+
+const TH=[0,7,21,45,90,150];
+const NAMES=['Temel','Düzen','Sebat','Metanet','Rüsuh','Tekâmül'];
+const ROTN=[2,3,4,5,6,6];
+
+/* ══════════════════ DEPOLAMA ══════════════════ */
+const KEY='v2_sicil';
+let S=null, mode='local', fb=null;
+
+const local={
+  async get(){
+    try{ if(window.storage?.get){ const r=await window.storage.get(KEY,false); if(r?.value) return r.value; } }catch(e){}
+    try{ return localStorage.getItem(KEY); }catch(e){ return null; }
+  },
+  async set(v){
+    try{ if(window.storage?.set){ await window.storage.set(KEY,v,false); } }catch(e){}
+    try{ localStorage.setItem(KEY,v); }catch(e){}
+  }
+};
+
+let fbErr='';
+async function initFB(){
+  const cfg=window.V2_FIREBASE_CONFIG;
+  if(!cfg?.apiKey){ fbErr='nocfg'; return false; }
+  try{
+    const [a,f]=await Promise.all([
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js')
+    ]);
+    const db=f.getFirestore(a.initializeApp(cfg));
+    fb={ref:f.doc(db,'sicil',window.V2_USER_ID||'default'),get:f.getDoc,set:f.setDoc};
+    return true;
+  }catch(e){ fbErr='fail'; console.warn('Firebase devre dışı:',e.message); return false; }
+}
+
+async function load(){
+  if(await initFB()){
+    mode='firebase';
+    try{ const s=await fb.get(fb.ref); if(s.exists()&&s.data().payload){ S=JSON.parse(s.data().payload); return; } }
+    catch(e){ console.warn(e); mode='local'; }
+  }
+  const raw=await local.get();
+  S=raw?JSON.parse(raw):null;
+  if(!S) S={h:{},start:today()};
+  if(!S.start) S.start=Object.keys(S.h).sort()[0]||today();
+}
+let tmr;
+function save(){
+  clearTimeout(tmr);
+  tmr=setTimeout(async()=>{
+    const p=JSON.stringify(S);
+    await local.set(p);
+    if(mode==='firebase'&&fb){ try{ await fb.set(fb.ref,{payload:p,updatedAt:new Date().toISOString()}); }catch(e){ console.warn('yazma hatası',e); } }
+  },450);
+}
+
+/* ══════════════════ YARDIMCILAR ══════════════════ */
+const P=n=>n<10?'0'+n:''+n;
+const key=d=>d.getFullYear()+'-'+P(d.getMonth()+1)+'-'+P(d.getDate());
+const today=()=>key(new Date());
+function off(n){ const d=new Date(); d.setDate(d.getDate()+n); return key(d); }
+const doy=d=>Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
+function rnd(s){ return()=>{s|=0;s=(s+0x6D2B79F5)|0;let t=Math.imul(s^(s>>>15),1|s);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;}; }
+const ROM=['I','II','III','IV','V','VI'];
+const rom=n=>ROM[Math.max(0,Math.min(5,n-1))];
+const esc=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML;};
+const $=i=>document.getElementById(i);
+
+const fullDays=()=>Object.values(S.h).filter(e=>e.st==='full').length;
+function lvl(n){ let l=1; TH.forEach((t,i)=>{ if(n>=t) l=i+1; }); return Math.min(l,6); }
+
+/* Havuzu tüketmeden tekrar etmeyen döngüsel sıra.
+   Her devir için kategoriler kendi içinde karıştırılır, sonra sırayla
+   örülür — böylece art arda gelen her dilim kategori açısından dengeli olur. */
+const PERM_CACHE={};
+function permFor(cycle){
+  if(PERM_CACHE[cycle]) return PERM_CACHE[cycle];
+  const cats=[...new Set(POOL.map(t=>t.c))];
+  const groups=cats.map((c,ci)=>{
+    const g=POOL.filter(t=>t.c===c);
+    const r=rnd((cycle+1)*7919 + ci*131);
+    for(let i=g.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[g[i],g[j]]=[g[j],g[i]];}
+    return g;
+  });
+  const r2=rnd((cycle+1)*104729);
+  for(let i=groups.length-1;i>0;i--){const j=Math.floor(r2()*(i+1));[groups[i],groups[j]]=[groups[j],groups[i]];}
+  const out=[]; let round=0;
+  while(out.length<POOL.length){
+    for(const g of groups){ if(g[round]) out.push(g[round]); }
+    round++;
+  }
+  return PERM_CACHE[cycle]=out;
+}
+const DAY0=new Date('2026-01-01T00:00:00').getTime();
+function rotFor(k,n){
+  const idx=Math.round((new Date(k+'T00:00:00').getTime()-DAY0)/864e5);
+  const base=idx*n, L=POOL.length;
+  const perm=permFor(Math.floor(base/L));
+  const start=((base%L)+L)%L;
+  const out=[];
+  for(let i=0;i<n;i++) out.push(perm[(start+i)%L]);
+  return out;
+}
+const wordFor=k=>WORDS[doy(new Date(k+'T00:00:00'))%WORDS.length];
+const mqFor=k=>MORNING[doy(new Date(k+'T00:00:00'))%MORNING.length];
+const eqFor=k=>EVENING[doy(new Date(k+'T00:00:00'))%EVENING.length];
+
+function ent(k,make){
+  if(!S.h[k]){ if(!make) return null; S.h[k]={lv:lvl(fullDays()),d:[],m:'',e:'',s:'',st:'none'}; }
+  const x=S.h[k]; if(!x.lv) x.lv=lvl(fullDays()); return x;
+}
+function restat(k){
+  const x=S.h[k]; if(!x) return;
+  const core=CORE.every(c=>x.d.includes(c.id));
+  const rot=rotFor(k,ROTN[x.lv-1]).every(t=>x.d.includes(t.id));
+  x.st = core&&rot?'full' : core?'light' : x.d.length?'part':'none';
+}
+const kept=st=>st==='full'||st==='light';
+function streak(){
+  let n=0,o=0;
+  const t=S.h[today()];
+  if(!t||!kept(t.st)) o=-1;
+  for(;;){ const e=S.h[off(o)]; if(e&&kept(e.st)){n++;o--;} else break; }
+  return n;
+}
+function longest(){
+  const ks=Object.keys(S.h).filter(k=>kept(S.h[k].st)).sort();
+  if(!ks.length) return 0;
+  let b=1,c=1;
+  for(let i=1;i<ks.length;i++){
+    const g=Math.round((new Date(ks[i]+'T00:00:00')-new Date(ks[i-1]+'T00:00:00'))/864e5);
+    c = g===1?c+1:1; if(c>b)b=c;
+  }
+  return b;
+}
+function vowDay(){
+  const g=Math.round((new Date(today()+'T00:00:00')-new Date(S.start+'T00:00:00'))/864e5)+1;
+  return Math.max(1,Math.min(g,30));
+}
+
+/* ══════════════════ MÜHÜR ══════════════════ */
+function arcPath(cx,cy,r,a0,a1){
+  const p=(a)=>[cx+r*Math.cos(a*Math.PI/180), cy+r*Math.sin(a*Math.PI/180)];
+  const [x0,y0]=p(a0),[x1,y1]=p(a1);
+  const large=Math.abs(a1-a0)>180?1:0;
+  return `M ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+}
+function buildSeal(level,frac){
+  const cx=84,cy=84,R=72,r2=57,gap=7,step=360/6;
+  let s='';
+  for(let i=0;i<6;i++){
+    const a0=-90+i*step+gap/2, a1=-90+(i+1)*step-gap/2;
+    s+=`<path class="seg${i<level?' earned':''}" d="${arcPath(cx,cy,R,a0,a1)}"/>`;
+  }
+  const C=2*Math.PI*r2;
+  s+=`<circle class="prog-track" cx="${cx}" cy="${cy}" r="${r2}"/>`;
+  s+=`<circle class="prog-arc" id="pArc" cx="${cx}" cy="${cy}" r="${r2}" transform="rotate(-90 ${cx} ${cy})"
+        stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${(C*(1-frac)).toFixed(2)}"/>`;
+  return s;
+}
+
+/* ══════════════════ RENDER ══════════════════ */
+const TICK=''; // filled square handled in CSS
+
+function row(t,text,why,done,onTap){
+  const el=document.createElement('div');
+  el.className='row'+(done?' done':'');
+  el.innerHTML=`<div class="box"></div>
+    <div><div class="rc">${t}</div><div class="rt">${esc(text)}</div><div class="rw">${esc(why)}</div></div>
+    <button class="exp" aria-label="Neden">+</button>`;
+  el.querySelector('.exp').addEventListener('click',e=>{e.stopPropagation();el.classList.toggle('open');});
+  el.addEventListener('click',onTap);
+  return el;
+}
+
+function drawToday(){
+  const k=today(), x=ent(k,true), L=x.lv;
+  const rot=rotFor(k,ROTN[L-1]);
+  const total=CORE.length+rot.length, done=x.d.length;
+  const gl=lvl(fullDays());
+
+  $('sealSvg').innerHTML=buildSeal(gl, total?Math.min(done,total)/total:0);
+  $('sealNum').textContent=rom(gl);
+  $('sealName').textContent=NAMES[gl-1];
+  $('sealFrac').textContent=done+' / '+total;
+  const pa=$('pArc'); if(pa) pa.style.stroke = x.st==='light'?'var(--brass)':'var(--verd)';
+
+  $('dayDate').textContent=new Date(k+'T00:00:00').toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'});
+  const st=streak();
+  $('mStreak').textContent=st;
+  $('mLongest').textContent=Math.max(longest(),st);
+  $('mTotal').textContent=fullDays();
+  $('chipDay').textContent=vowDay();
+
+  const cl=$('coreList'); cl.innerHTML='';
+  CORE.forEach(c=>cl.appendChild(row(c.cat,coreText(c,L),c.w,x.d.includes(c.id),()=>{
+    if(c.auto){ document.getElementById('wIn').focus(); document.getElementById('wIn').scrollIntoView({behavior:'smooth',block:'center'}); return; }
+    tap(c.id);
+  })));
+  const rl=$('rotList'); rl.innerHTML='';
+  rot.forEach(t=>rl.appendChild(row(t.c,t.t,t.w,x.d.includes(t.id),()=>tap(t.id))));
+
+  $('nCore').textContent=CORE.filter(c=>x.d.includes(c.id)).length+'/'+CORE.length;
+  $('nRot').textContent=rot.filter(t=>x.d.includes(t.id)).length+'/'+rot.length;
+
+  $('nFull').className='notice full'+(x.st==='full'?' on':'');
+  $('nLight').className='notice light'+(x.st==='light'?' on':'');
+  const y=S.h[off(-1)];
+  $('nWarn').className='notice warn'+((y&&!kept(y.st)&&Object.keys(S.h).length>1)?' on':'');
+
+  const w=wordFor(k);
+  $('wTerm').textContent=w.w; $('wPos').textContent=w.p;
+  $('wDef').textContent=w.d; $('wEx').textContent='“'+w.e+'”';
+  if(document.activeElement!==$('wIn')) $('wIn').value=x.s||'';
+}
+
+function tap(id){
+  const k=today(), x=ent(k,true);
+  const was=x.st, pl=lvl(fullDays());
+  const i=x.d.indexOf(id);
+  i>-1?x.d.splice(i,1):x.d.push(id);
+  restat(k); save(); drawToday();
+  if(x.st==='full'&&was!=='full'){ const nl=lvl(fullDays()); if(nl>pl) levelUp(nl); }
+}
+function levelUp(n){
+  const c=WIS.filter(w=>w.l===n).length;
+  $('dRn').textContent=rom(n); $('dNm').textContent=NAMES[n-1];
+  $('dH').textContent='Mühre bir kol daha eklendi';
+  $('dP').textContent=`Bugüne özel görev sayın ${ROTN[n-1]}, kitap hedefin ${SC.kitap[n-1]} dakika, nefes ${SC.nefes[n-1]} tur oldu.`+(c?` İlkeler bölümünde ${c} yeni madde açıldı.`:'');
+  $('veil').classList.add('on');
+}
+
+const ht={};
+function hint(id){ const e=$(id); e.textContent='Kaydedildi'; clearTimeout(ht[id]); ht[id]=setTimeout(()=>e.textContent='',1400); }
+
+function drawJournal(){
+  const k=today(), x=ent(k,true);
+  $('mQ').textContent=mqFor(k); $('eQ').textContent=eqFor(k);
+  if(document.activeElement!==$('mIn')) $('mIn').value=x.m||'';
+  if(document.activeElement!==$('eIn')) $('eIn').value=x.e||'';
+  const ks=Object.keys(S.h).filter(a=>S.h[a].m||S.h[a].e).sort().reverse().slice(0,40);
+  $('hist').innerHTML = ks.length ? ks.map(a=>{
+    const e=S.h[a];
+    const lab=new Date(a+'T00:00:00').toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'});
+    return `<div class="entry"><div class="dt">${lab}</div>`+
+      (e.m?`<div class="qq">${esc(mqFor(a))}</div><div class="aa">${esc(e.m)}</div>`:'')+
+      (e.e?`<div class="qq">${esc(eqFor(a))}</div><div class="aa">${esc(e.e)}</div>`:'')+`</div>`;
+  }).join('') : '<div class="void-note">Arşiv boş.<br>İlk cümleni bugün yaz.</div>';
+}
+
+function drawWisdom(){
+  const L=lvl(fullDays());
+  $('wisList').innerHTML=WIS.map((w,i)=>{
+    const n='İLKE '+P(i+1);
+    return L>=w.l
+      ? `<div class="wis"><div class="n">${n}</div><div class="t">${w.t}</div><div class="b">${w.b}</div></div>`
+      : `<div class="wis locked"><div class="n">${n}</div><div class="t">— — —</div><div class="lk"><span>✦</span>Seviye ${rom(w.l)} — ${NAMES[w.l-1]}</div></div>`;
+  }).join('');
+}
+
+function drawProgress(){
+  const f=fullDays(), L=lvl(f), st=streak();
+  $('sLevel').textContent=rom(L); $('sFull').textContent=f;
+  $('sStreak').textContent=st; $('sLong').textContent=Math.max(longest(),st);
+
+  const vd=vowDay();
+  $('vowTxt').textContent = vd>=30?'Taahhüt tamamlandı':'Otuz günlük söz';
+  $('vowNum').textContent = vd+' / 30 gün';
+  $('vowBar').style.width=(vd/30*100)+'%';
+
+  if(L>=6){ $('nxTxt').textContent='En üst seviye — Tekâmül'; $('nxNum').textContent=f+' tam gün'; $('nxBar').style.width='100%'; }
+  else{
+    const need=TH[L], prev=TH[L-1];
+    $('nxTxt').textContent='Seviye '+rom(L+1)+' — '+NAMES[L];
+    $('nxNum').textContent=f+' / '+need;
+    $('nxBar').style.width=Math.max(0,Math.min(100,(f-prev)/(need-prev)*100))+'%';
+  }
+
+  let h='';
+  for(let i=29;i>=0;i--){
+    const k=off(-i), e=S.h[k];
+    let c='hc';
+    if(e){ if(e.st==='full')c+=' full'; else if(e.st==='light')c+=' light'; else if(e.st==='part')c+=' part'; }
+    if(i===0) c+=' today';
+    h+=`<div class="${c}" title="${k}"></div>`;
+  }
+  $('heat').innerHTML=h;
+
+  const map={}; CORE.forEach(c=>map[c.id]=c.cat); POOL.forEach(t=>map[t.id]=t.c);
+  const cnt={};
+  Object.values(S.h).forEach(e=>(e.d||[]).forEach(id=>{const c=map[id]; if(c)cnt[c]=(cnt[c]||0)+1;}));
+  const cats=['Bakım','Beden','Zihin','Disiplin','Öğrenme','İlişki','Ruh','Zanaat','Sermaye'];
+  const mx=Math.max(1,...cats.map(c=>cnt[c]||0));
+  $('bars').innerHTML=cats.map(c=>{
+    const n=cnt[c]||0;
+    return `<div class="bar"><div class="l"><span>${c}</span><span>${n}</span></div><div class="t"><div class="f" style="width:${n/mx*100}%"></div></div></div>`;
+  }).join('');
+
+  const d=$('syncDot'), t=$('syncTxt');
+  if(mode==='firebase'){ d.className='dot on'; t.textContent='Firebase bağlı. Sicil bulutta tutuluyor, tüm cihazlarında aynı.'; }
+  else if(fbErr==='fail'){ d.className='dot off'; t.textContent='Yerel kayıt. Firebase ayarlı ama bağlanamadı — siteyi https üzerinden (GitHub Pages) açtığından ve Firestore kurallarının yayınlandığından emin ol.'; }
+  else{ d.className='dot off'; t.textContent='Yerel kayıt. Firebase için index.html içindeki V2_FIREBASE_CONFIG bloğunu doldur.'; }
+}
+
+/* ══════════════════ NAVİGASYON ══════════════════ */
+function go(p){
+  document.querySelectorAll('.tabs button,.nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+  document.querySelectorAll('.pane').forEach(s=>s.classList.toggle('on',s.id==='p-'+p));
+  if(p==='journal')drawJournal(); if(p==='wisdom')drawWisdom(); if(p==='progress')drawProgress();
+  window.scrollTo({top:0,behavior:'instant'});
+}
+
+/* ══════════════════ PWA ══════════════════ */
+let deferred=null;
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferred=e; $('installBar').classList.add('on'); });
+function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true; }
+function maybeIOSPrompt(){
+  const ios=/iPad|iPhone|iPod/.test(navigator.userAgent);
+  if(ios && !isStandalone() && !deferred && !sessionStorage.getItem('v2_ios_hint')){
+    $('installTxt').textContent='Ana ekrana ekle: aşağıdaki Paylaş düğmesine bas, "Ana Ekrana Ekle" seç.';
+    $('installGo').style.display='none';
+    $('installBar').classList.add('on');
+  }
+}
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('./sw.js').catch(()=>{}); });
+}
+
+/* ══════════════════ BAŞLAT ══════════════════ */
+function wire(){
+  document.querySelectorAll('.tabs button,.nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.p)));
+  $('dClose').addEventListener('click',()=>$('veil').classList.remove('on'));
+  $('veil').addEventListener('click',e=>{ if(e.target===$('veil')) $('veil').classList.remove('on'); });
+
+  $('wIn').addEventListener('input',e=>{
+    const k=today(), x=ent(k,true);
+    x.s=e.target.value;
+    const ok=x.s.trim().length>=10, had=x.d.includes('c_kelime');
+    if(ok&&!had) x.d.push('c_kelime');
+    if(!ok&&had) x.d.splice(x.d.indexOf('c_kelime'),1);
+    restat(k); save(); hint('wHint');
+    if(ok!==had) drawToday();
+  });
+  $('mIn').addEventListener('input',e=>{ ent(today(),true).m=e.target.value; save(); hint('mHint'); });
+  $('eIn').addEventListener('input',e=>{ ent(today(),true).e=e.target.value; save(); hint('eHint'); });
+
+  $('installGo').addEventListener('click',async()=>{
+    $('installBar').classList.remove('on');
+    if(deferred){ deferred.prompt(); deferred=null; }
+  });
+  $('installX').addEventListener('click',()=>{ $('installBar').classList.remove('on'); sessionStorage.setItem('v2_ios_hint','1'); });
+
+  $('wipeBtn').addEventListener('click',async()=>{
+    if(!confirm('Tüm sicil silinecek. Seri, tam günler, muhasebe kayıtları — hepsi. Emin misin?')) return;
+    if(!confirm('Son kez: bu geri alınamaz. Sil?')) return;
+    S={h:{},start:today()}; await local.set(JSON.stringify(S));
+    if(mode==='firebase'&&fb){ try{ await fb.set(fb.ref,{payload:JSON.stringify(S),updatedAt:new Date().toISOString()}); }catch(e){} }
+    drawToday(); drawProgress();
+  });
+
+  // gün değişimini yakala (uygulama açık kaldıysa)
+  let cur=today();
+  setInterval(()=>{ if(today()!==cur){ cur=today(); ent(cur,true); restat(cur); drawToday(); } },60000);
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&today()!==cur){ cur=today(); ent(cur,true); restat(cur); drawToday(); } });
+}
+
+await load();
+ent(today(),true); restat(today());
+drawToday(); wire(); maybeIOSPrompt();
+$('boot').style.display='none';
+$('wrap').style.display='flex';
+</script>
+</body>
+</html>
